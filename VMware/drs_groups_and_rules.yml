@@ -1,0 +1,110 @@
+---
+
+- name: Configure cluster DRS Rules for VM/Host Groups
+  hosts: vCenters
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: VM DRS Groups
+      vmware_drs_group:
+        hostname: "{{ inventory_hostname }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ vmware_validate_certs }}"
+        cluster_name: "{{ item.cluster_name }}"
+        datacenter_name: "{{ datacenter_name | default(omit) }}"
+        group_name: "{{ item.group_name }}"
+        vms: "{{ item.vms }}"
+        state: "{{ item.state | default('present') }}"
+      delegate_to: localhost
+      loop: "{{ vm_drs_groups }}"
+      loop_control:
+        label: "{{ item.cluster_name }}: {{ item.group_name }}"
+      when: vm_drs_groups is defined
+      ignore_errors: true
+      register: result
+      until: result is not failed
+      retries: 2
+      delay: 60
+      tags:
+        - vm_group
+
+
+    - name: Host DRS Groups
+      community.vmware.vmware_drs_group:
+        hostname: "{{ inventory_hostname }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ vmware_validate_certs }}"
+        cluster_name: "{{ item.cluster_name }}"
+        datacenter_name: "{{ datacenter_name | default(omit) }}"
+        group_name: "{{ item.group_name }}"
+        hosts: "{{ item.hosts }}"
+        state: "{{ item.state | default('present') }}"
+      delegate_to: localhost
+      loop: "{{ host_drs_groups }}"
+      loop_control:
+        label: "{{ item.cluster_name }}: {{ item.group_name }}"
+      when: host_drs_groups is defined
+      ignore_errors: true
+      retries: 2
+      delay: 60
+      register: result
+      until: result is not failed
+      tags:
+        - host_group
+
+
+    - community.vmware.vmware_vm_vm_drs_rule:
+        hostname: "{{ inventory_hostname }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ vmware_validate_certs }}"
+        cluster_name: "{{ item.cluster_name }}"
+        enabled: "{{ item.enabled | default(True) }}"
+        vms: "{{ item.vms }}"
+        drs_rule_name: "{{ item.rule_name }}"
+        mandatory: "{{ item.mandatory | default(True) }}"
+        affinity_rule: "{{ item.affinity_rule | default(False) }}"
+        state: "{{ item.state | default('present') }}"
+      delegate_to: localhost
+      loop: "{{ vm_drs_rules }}"
+      loop_control:
+        label: "{{ item.cluster_name }}: {{ item.rule_name }}"
+      when: vm_drs_rules is defined
+      ignore_errors: true
+      retries: 2
+      delay: 60
+      register: result
+      until: result is not failed
+      tags:
+        - vm_rule
+
+
+    - name: "DRS Rule for VM/Host"
+      community.vmware.vmware_vm_host_drs_rule:
+        hostname: "{{ inventory_hostname }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ vmware_validate_certs }}"
+        cluster_name: "{{ item.cluster_name }}"
+        drs_rule_name: "{{ item.rule_name }}"
+        host_group_name: "{{ item.host_group_name }}"
+        vm_group_name: "{{ item.vm_group_name }}"
+        mandatory: "{{ item.mandatory | default(False) }}"
+        enabled: "{{ item.enabled | default(True) }}"
+        affinity_rule: "{{ item.affinity_rule | default(True) }}"
+        state: "{{ item.state | default('present') }}"
+      delegate_to: localhost
+      loop: "{{ vm_host_drs_rules }}"
+      loop_control:
+        label: "{{ item.cluster_name }}: {{ item.rule_name }}"
+      when: vm_host_drs_rules is defined
+      ignore_errors: true
+      retries: 2
+      delay: 60
+      register: result
+      until: result is not failed
+      tags:
+        - host_vm_rule

@@ -1,0 +1,8 @@
+download_url: https://galaxy.ansible.com/download/servicenow-servicenow-1.0.6.tar.gz
+format_version: 1.0.0
+name: servicenow
+namespace: servicenow
+server: https://galaxy.ansible.com/api/
+signatures: []
+version: 1.0.6
+version_url: https://galaxy.ansible.com/api/v2/collections/servicenow/servicenow/versions/1.0.6/

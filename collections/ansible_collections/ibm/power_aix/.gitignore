@@ -1,0 +1,9 @@
+playbooks/*issue*
+.travis.yml
+.DS_Store
+.vscode
+venv*
+tests/output
+hosts
+*.swp
+*__pycache*

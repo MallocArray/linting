@@ -1,0 +1,8 @@
+download_url: https://galaxy.ansible.com/download/dellemc-openmanage-7.6.1.tar.gz
+format_version: 1.0.0
+name: openmanage
+namespace: dellemc
+server: https://galaxy.ansible.com/api/
+signatures: []
+version: 7.6.1
+version_url: https://galaxy.ansible.com/api/v2/collections/dellemc/openmanage/versions/7.6.1/

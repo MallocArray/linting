@@ -1,0 +1,97 @@
+---
+# PREREQUISITES:
+# 1. setup NIM master and client connection
+# 2. make sure there is a free physical volume
+# that does not belong to any volume group and
+# has enough space for an alt_disk
+# 3. make sure NIM master OS level is at least
+# to the desired level for migration
+# 4. NIM LPP source for the desired level of
+# migration must be created before hand
+# 5. c_rsh must be active (should be good if (1)
+# is properly setup)
+- name: "nim_alt_disk_migration demo"
+  hosts: nimserver 
+  gather_facts: false
+  remote_user: root
+  vars:
+    nim_client_v: p9zpa-ansible-test2
+    target_disk_v: ""
+    target_disk_policy_v: minimize
+    lpp_source_v: lpp_72V_2114
+    spot_v: spot_72V_2114
+    force_target_disk: true
+    validate_nim_resources_v: true
+    perform_migration_v: true
+  collections:
+    - ibm.power_aix
+  tasks:
+
+    # perform alt_disk_migration
+    - import_role:
+        name: ibm.power_aix.nim_alt_disk_migration
+      vars:
+        # required: NIM standalone object name
+        # associated with the NIM client
+        nim_client: "{{ nim_client_v }}"
+
+        # required: specify either the target disk name
+        # or to automatically select target disk based
+        # on policy
+        target_disk:
+          disk_name: "{{ target_disk_v }}"
+          disk_size_policy: "{{ target_disk_policy_v }}"
+          force: "{{ force_target_disk }}"
+
+        # required: NIM lpp_source object name
+        # associated to a lpp_source for the desired
+        # level of migration
+        lpp_source: "{{ lpp_source_v }}"
+
+        # determines to reboot the client LPAR after the
+        # alt_disk is successfully created
+        reboot_client: false
+
+        # optional, provide a SPOT resource, if not given
+        # then the role will derive one from lpp_source
+        spot: "{{ spot_v }}"
+
+        # Control_phases options:
+        #  * validate_nim_resources false will not perform the nim resource
+        #    evaluation. Use for concurrent migration.
+        #  * validate_nim_resources true and perform_nim_migration false
+        #    will only evaluate the nim resources for the migration.
+
+        control_phases:
+           validate_nim_resources: "{{ validate_nim_resources_v }}"
+           perform_migration: "{{ perform_migration_v }}"
+
+
+
+# - name: "change bootlist"
+#   hosts: ansible-test2
+#   gather_facts: false
+#   remote_user: root
+#   vars:
+#     target_disk: hdisk0
+#   collections:
+#     - ibm.power_aix
+#   tasks:
+#     - name: "change bootlist back to old rootvg"
+#       ibm.power_aix.bootlist:
+#         normal:
+#           - device: "{{ target_disk }}"
+
+# - name: "reboot client LPAR"
+#   hosts: nimserver 
+#   gather_facts: false
+#   remote_user: root
+#   vars:
+#     nim_client_v: p9zpa-ansible-test2
+#   collections:
+#     - ibm.power_aix
+#   tasks:
+#     - name: "reboot client LPAR"
+#       ibm.power_aix.nim:
+#         action: reboot
+#         targets: "{{ nim_client_v }}"

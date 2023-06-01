@@ -1,0 +1,37 @@
+---
+# https://docs.ansible.com/ansible/latest/user_guide/collections_using.html
+
+# ansible.cfg in the root of the project directs the collections to the ./collections/ folder instead of the user folder so it is stored with the project
+
+# Associated python module requirements are listed at
+# execution_environment/requirements.txt
+
+
+collections:
+  - name: ansible.netcommon
+  - name: ansible.posix
+  - name: ansible.utils
+  - name: ansible.windows
+  - name: awx.awx  # pip3 install --user awxkit python-dateutil pytz
+  - name: azure.azcollection
+  - name: cisco.intersight
+  - name: cisco.ucs  # pip3 install --user ucsmsdk
+  - name: cloud.common
+  - name: community.crypto  # Creating SSL certs
+  - name: community.general
+  - name: community.mysql
+  - name: community.okd  # pip3 install --user kubernetes
+  - name: community.vmware  # pip3 install --user pyvmomi
+  - name: community.windows
+  - name: dellemc.openmanage  # pip3 install --user OMSDK
+  - name: dellemc.os10
+  - name: google.cloud
+  - name: ibm.power_aix
+  - name: kubernetes.core
+  - name: kubernetes.core
+  - name: netapp_eseries.santricity
+  - name: netapp.ontap  # pip3 install --user netapp-lib
+    version: 21.24.1
+  - name: servicenow.servicenow  # pip3 install --user pysnow requests netaddr
+  - name: theforeman.foreman
+  - name: vmware.vmware_rest  # pip3 install --user aiohttp

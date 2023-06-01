@@ -1,0 +1,8 @@
+download_url: https://galaxy.ansible.com/download/netapp-ontap-21.24.1.tar.gz
+format_version: 1.0.0
+name: ontap
+namespace: netapp
+server: https://galaxy.ansible.com/api/
+signatures: []
+version: 21.24.1
+version_url: https://galaxy.ansible.com/api/v2/collections/netapp/ontap/versions/21.24.1/

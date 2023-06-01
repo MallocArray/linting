@@ -1,0 +1,105 @@
+# Copyright (c) IBM Corporation 2021
+---
+
+#   Verify the AIX level is 7.1 or above. Bootstrap dnf is only supported in AIX 7.1 and up.
+- name: Verify the host is at least aix 7.1, if not, exit host
+  raw: "/usr/bin/oslevel  | /usr/bin/awk -F '.' ' { print $1 $2 }'"
+  register: output
+  changed_when: false
+
+#   CHECK for DNF on inventory host
+- block:
+
+    - name: Check for existence of dnf
+      raw: "/usr/bin/rpm -q --quiet dnf && echo true || echo false"
+      register: dnf_exists
+      changed_when: false
+
+    - name: Print if dnf is installed
+      debug:
+        msg: "Exiting the playbook. dnf is already installed"
+      when: dnf_exists.stdout is search("true")
+
+    - name: Check for existence of yum
+      raw: "/usr/bin/rpm -q --quiet yum && echo true || echo false"
+      register: yum_exists
+      changed_when: false
+      when: dnf_exists.stdout is search("false")
+
+# { Excute this block if dnf is not installed and the AIX version is equal or greater than 7.1
+- block:
+
+    - name: Create target filesystem "{{ target_dir }}" for image transfer if it does not exist.
+      filesystem:
+        state: present
+        filesystem: "{{ target_dir }}"
+        fs_type: jfs2
+        auto_mount: yes  # noqa yaml
+        attributes: size=350M
+        permissions: 'rw'
+        vg: rootvg
+
+    - name: Mount target filesystem "{{ target_dir }}"
+      mount:
+        mount_dir: "{{ target_dir }}"
+
+    - name: Copy dnf install script to "{{ aix_host }}:{{ target_dir }}"
+      copy:
+        src: "{{ item }}"
+        dest: "{{ target_dir }}"
+        mode: 0755
+      with_items:
+        - "files/{{ dnf_install_script }}"
+
+    - name: Restore dnf bundle to upgrade yum to yum4 if yum is installed.
+      command: "{{ target_dir }}/{{ dnf_install_script }} -y {{ target_dir }}"
+#      failed_when: false
+      when:
+        - yum_exists.stdout is search("true")
+
+    - name: Restore dnf bundle at the target if yum is not installed.
+      command: "{{ target_dir }}/{{ dnf_install_script }} -d {{ target_dir }}"
+#      failed_when: false
+      when:
+        - yum_exists.stdout is not search("true")
+
+    - name: Check if dnf was installed at /opt/freeware/bin
+      stat:
+        path: "/opt/freeware/bin/dnf"
+      register: dnf_installed
+
+    - name: Check if yum link was installed at /opt/freeware/bin
+      stat:
+        path: "/opt/freeware/bin/yum"
+      register: yum_link_installed
+
+    - name: Update "{{ ansible_python_interpreter }}"
+      shell: "/usr/bin/yes | /opt/freeware/bin/dnf upgrade python3"
+      failed_when: false
+      vars:
+        ansible_python_interpreter: "{{ interpreter_name }}"
+      when:
+        - dnf_installed.stat.exists
+
+    - name: Unmount target filesystem "{{ target_dir }}"
+      mount:
+        state: umount
+        mount_dir: "{{ target_dir }}"
+
+    - name: Remove target filesystem "{{ target_dir }}"
+      filesystem:
+        state: absent
+        filesystem: "{{ target_dir }}"
+
+    - name: Print status
+      debug:
+        msg: "Bootstrap attempt of yum upgrade to dnf on {{ aix_host }} has completed"
+      when: yum_link_installed.stat.exists
+
+    - name: Print status
+      debug:
+        msg: "Bootstrap attempt of dnf on {{ aix_host }} has completed"
+      when: dnf_installed.stat.exists
+
+  #    Block to install dnf }
+  when: dnf_exists.stdout is search("false")

@@ -1,0 +1,8 @@
+download_url: https://galaxy.ansible.com/download/cisco-intersight-1.0.27.tar.gz
+format_version: 1.0.0
+name: intersight
+namespace: cisco
+server: https://galaxy.ansible.com/api/
+signatures: []
+version: 1.0.27
+version_url: https://galaxy.ansible.com/api/v2/collections/cisco/intersight/versions/1.0.27/

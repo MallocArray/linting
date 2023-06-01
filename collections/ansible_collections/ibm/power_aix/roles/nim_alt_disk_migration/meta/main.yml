@@ -1,0 +1,25 @@
+---
+galaxy_info:
+  role_name: nim_alt_disk_migration
+  author: >
+    Joseph de Joya
+    Rae Yang
+    Pedro V Torres
+  description: Ansible role for migrating an alternate disk to a higher AIX level.
+  company: IBM
+
+  license: GPL-3.0-only
+
+  min_ansible_version: 2.9
+
+  platforms:
+    - name: AIX
+      versions:
+        - 7.2
+        - 7.3
+
+  galaxy_tags:
+    - aix
+    - migration
+    - nim
+  dependencies: []
